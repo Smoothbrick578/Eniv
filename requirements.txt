@@ -2,3 +2,4 @@ Flask
 Werkzeug
 moviepy
 ffmpeg-python
+moviepy==1.0.3
