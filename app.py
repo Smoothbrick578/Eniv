@@ -3,7 +3,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
-from moviepy.editor import VideoFileClip
+from moviepy import VideoFileClip
 import os, json
 import ffmpeg
 import uuid
