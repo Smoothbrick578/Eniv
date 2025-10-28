@@ -1,0 +1,185 @@
+{% if logged_in %}
+<h3>Post a comment</h3>
+<form id="new-comment-form">
+    <textarea name="text" id="new-comment-text" rows="3" cols="50" placeholder="Add a comment..."></textarea><br>
+    <button type="submit">Post Comment</button>
+</form>
+{% else %}
+<p>Log in to post comments.</p>
+{% endif %}
+
+<ul id="comments-list">
+    {% macro render_comments(comments, level=0) %}
+    <ul style="margin-left: {{ level * 20 }}px;">
+    {% for comment in comments %}
+    <li>
+        <p><strong>{{ comment.author }}</strong>: {{ comment.text }}</p>
+
+        <button class="c-like-btn" data-id="{{ comment.id }}" data-liked="{{ 'true' if comment.current_user_liked else 'false' }}">
+            👍 {{ comment.likes }}
+        </button>
+        <button class="c-dislike-btn" data-id="{{ comment.id }}" data-disliked="{{ 'true' if comment.current_user_disliked else 'false' }}">
+            👎 {{ comment.dislikes }}
+        </button>
+
+        {% if logged_in %}
+            <button class="reply-btn" data-id="{{ comment.id }}">Reply</button>
+        {% endif %}
+        {% if logged_in and comment.author == username %}
+            <button class="delete-comment-btn" data-id="{{ comment.id }}" style="background:red;color:white;padding:5px 10px;">Delete</button>
+        {% endif %}
+
+        {% if comment.replies %}
+            <div class="replies-section">
+                <button class="toggle-replies-btn" data-id="{{ comment.id }}">
+                    Show Replies ({{ comment.replies|length }})
+                </button>
+                <ul id="replies-{{ comment.id }}" class="replies-list" style="display:none;">
+                    {{ render_comments(comment.replies, level + 1) }}
+                </ul>
+            </div>
+        {% endif %}
+    </li>
+    {% endfor %}
+    </ul>
+    {% endmacro %}
+
+    {{ render_comments(video.comments) }}
+</ul>
+<script>
+    // -------------------- Utility --------------------
+    async function postData(url = '', data = {}) {
+        const formData = new FormData();
+        for (const key in data) formData.append(key, data[key]);
+        const response = await fetch(url, { method: 'POST', body: formData });
+        return response.json();
+    }
+
+    // -------------------- Handle like/dislike --------------------
+    document.addEventListener("click", async (e) => {
+        const target = e.target;
+
+        // Like comment
+        if (target.classList.contains("c-like-btn")) {
+            const id = target.dataset.id;
+            const dBtn = document.querySelector(`.c-dislike-btn[data-id="${id}"]`);
+            const data = await postData(`/comment_like/${videoId}/${id}`);
+            if (!data.error) {
+                target.innerText = `👍 ${data.likes}`;
+                dBtn.innerText = `👎 ${data.dislikes}`;
+                target.classList.toggle("active-like", data.following_like);
+                dBtn.classList.toggle("active-dislike", data.following_dislike);
+            }
+        }
+
+        // Dislike comment
+        if (target.classList.contains("c-dislike-btn")) {
+            const id = target.dataset.id;
+            const lBtn = document.querySelector(`.c-like-btn[data-id="${id}"]`);
+            const data = await postData(`/comment_dislike/${videoId}/${id}`);
+            if (!data.error) {
+                target.innerText = `👎 ${data.dislikes}`;
+                lBtn.innerText = `👍 ${data.likes}`;
+                target.classList.toggle("active-dislike", data.following_dislike);
+                lBtn.classList.toggle("active-like", data.following_like);
+            }
+        }
+
+        // Toggle replies
+        if (target.classList.contains("toggle-replies-btn")) {
+            const id = target.dataset.id;
+            const repliesDiv = document.getElementById(`replies-${id}`);
+            if (!repliesDiv) return;
+            const isHidden = repliesDiv.style.display === "none";
+            repliesDiv.style.display = isHidden ? "block" : "none";
+            target.innerText = `${isHidden ? "Hide" : "Show"} Replies (${repliesDiv.querySelectorAll("li").length})`;
+        }
+
+        // Delete comment
+        if (target.classList.contains("delete-comment-btn")) {
+            const id = target.dataset.id;
+            if (!confirm("Delete this comment and all its replies?")) return;
+            const data = await postData(`/delete_comment/${videoId}/${id}`);
+            if (data.success) target.closest("li").remove();
+            else alert(data.error || "Failed to delete comment");
+        }
+
+        // Reply button
+        if (target.classList.contains("reply-btn")) {
+            const parentId = target.dataset.id;
+            let existingForm = document.getElementById(`reply-form-${parentId}`);
+            if (existingForm) return existingForm.remove(); // toggle off
+
+            const form = document.createElement("form");
+            form.id = `reply-form-${parentId}`;
+            form.innerHTML = `
+                <textarea name="text" rows="2" cols="40" placeholder="Write a reply..."></textarea>
+                <br>
+                <button type="submit">Post Reply</button>
+            `;
+            target.insertAdjacentElement("afterend", form);
+
+            form.addEventListener("submit", async (evt) => {
+                evt.preventDefault();
+                const text = form.querySelector("textarea").value.trim();
+                if (!text) return alert("Comment cannot be empty");
+
+                const payload = { text };
+                const data = await postData(`/comment/${videoId}`, { ...payload, parent_id: parentId });
+                if (data.success) {
+                    // Insert new reply into DOM without reloading
+                    const repliesUl = document.getElementById(`replies-${parentId}`);
+                    if (repliesUl) {
+                        repliesUl.style.display = "block";
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                            <p><strong>${data.comment.author}</strong>: ${data.comment.text}</p>
+                            <button class="c-like-btn" data-id="${data.comment.id}">👍 0</button>
+                            <button class="c-dislike-btn" data-id="${data.comment.id}">👎 0</button>
+                            <button class="delete-comment-btn" data-id="${data.comment.id}">Delete</button>
+                        `;
+                        repliesUl.appendChild(li);
+                    }
+                    form.remove();
+                } else alert(data.error || "Error posting reply");
+            });
+        }
+    });
+
+    // Highlight active likes/dislikes on load
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".c-like-btn[data-liked='true']").forEach(b => b.classList.add("active-like"));
+        document.querySelectorAll(".c-dislike-btn[data-disliked='true']").forEach(b => b.classList.add("active-dislike"));
+    });
+
+    // New top-level comment
+    const newCommentForm = document.getElementById("new-comment-form");
+    if (newCommentForm) {
+        console.log("commented")
+        newCommentForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = document.getElementById("new-comment-text").value.trim();
+            if (!text) return alert("Comment cannot be empty");
+            
+            const payload = { text };
+            const data = await postData(`/comment/${videoId}`, payload);
+            if (data.success) {
+                // Add comment to top-level list without reloading
+                const ul = document.querySelector("#comments-list");
+                if (ul) {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <p><strong>${data.comment.author}</strong>: ${data.comment.text}</p>
+                        <button class="c-like-btn" data-id="${data.comment.id}">👍 0</button>
+                        <button class="c-dislike-btn" data-id="${data.comment.id}">👎 0</button>
+                        <button class="reply-btn" data-id="${data.comment.id}">Reply</button>
+                        <button class="delete-comment-btn" data-id="${data.comment.id}">Delete</button>
+                        <ul id="replies-${data.comment.id}" style="display:none;"></ul>
+                    `;
+                    ul.appendChild(li);
+                    document.getElementById("new-comment-text").value = "";
+                }
+            } else alert(data.error || "Error posting comment");
+        });
+    }
+</script>

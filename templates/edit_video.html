@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Edit Video - {{ video.title }}{% endblock %}
+
+{% block content %}
+<h2>Edit Video</h2>
+<form method="POST">
+    <label>Title:</label><br>
+    <input type="text" name="title" value="{{ video.title }}" required><br><br>
+
+    <label>Description:</label><br>
+    <textarea name="description" rows="5" cols="50">{{ video.description }}</textarea><br><br>
+
+    <button type="submit">Save Changes</button>
+</form>
+<p><a href="{{ url_for('video_page', video_id=video.id) }}">Back to Video</a></p>
+{% endblock %}

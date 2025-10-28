@@ -1,0 +1,4 @@
+Flask==2.3.3
+Werkzeug==2.3.7
+moviepy==1.0.3
+ffmpeg-python==0.1.2

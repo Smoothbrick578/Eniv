@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<h1>Edit Profile</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    <label>Username:</label><br>
+    <input type="text" name="username" value="{{ session['username'] }}" required><br><br>
+
+    <label>Bio:</label><br>
+    <textarea name="bio" rows="4" cols="50">{{ user.get('bio', '') }}</textarea><br><br>
+
+    <label>Profile Picture:</label><br>
+    {% if user.get('profile_pic') %}
+        <img src="{{ url_for('static', filename='profile_pics/' + user['profile_pic']) }}" width="100"><br>
+    {% endif %}
+    <input type="file" name="profile_pic" accept="image/*"><br><br>
+
+    <button type="submit" style="padding:5px 10px;">Save Changes</button>
+</form>
+
+<p><a href="{{ url_for('user_profile', username=session['username']) }}">Back to Profile</a></p>
+{% endblock %}

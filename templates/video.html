@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ video.title }} - Eniv{% endblock %}
+{% block content %}
+<h1>{{ video.title }}</h1>
+
+<video width="640" controls>
+    <source src="{{ url_for('static', filename='videos/' + video.video) }}" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+{% if username == video.uploader %}
+<div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <form action="{{ url_for('delete_video', video_id=video.id) }}" method="POST" onsubmit="return confirm('Are you sure?');">
+        <button type="submit" style="background:red;color:white;padding:5px 10px;">Delete</button>
+    </form>
+
+    <a href="{{ url_for('edit_video', video_id=video.id) }}">
+        <button style="background:blue;color:white;padding:5px 10px;">Edit</button>
+    </a>
+</div>
+{% endif %}
+
+<p>Uploaded by: <a href="{{ url_for('user_profile', username=video.uploader) }}">{{ video.uploader }}</a> | Views: {{ video.views or 0 }} | {{ uploaded_ago }}</p>
+
+{% if video.description %}
+<h3>Description</h3>
+<p>{{ video.description }}</p>
+{% endif %}
+
+{% if logged_in %}
+<button id="likeBtn" class="vote-btn">👍 Like ({{ video.likes or 0 }})</button>
+<button id="dislikeBtn" class="vote-btn">👎 Dislike ({{ video.dislikes or 0 }})</button>
+{% else %}
+<p>Log in to like or dislike this video.</p>
+{% endif %}
+
+{% if is_admin(session.get('username')) %}
+  <form action="{{ url_for('admin_delete_video', video_id=video.id) }}" method="POST" onsubmit="return confirm('Admin: delete this video?');" style="display:inline;">
+      <button type="submit" style="background:#a00;color:white;padding:5px 10px;">Admin Delete</button>
+  </form>
+{% endif %}
+
+<script>
+// Set initial active state on page load
+window.addEventListener("DOMContentLoaded", () => {
+    const likeBtn = document.getElementById("likeBtn");
+    const dislikeBtn = document.getElementById("dislikeBtn");
+
+    {% if user_liked %}
+        likeBtn?.classList.add("active-like");
+        dislikeBtn?.classList.remove("active-dislike");
+    {% elif user_disliked %}
+        dislikeBtn?.classList.add("active-dislike");
+        likeBtn?.classList.remove("active-like");
+    {% else %}
+        likeBtn?.classList.remove("active-like");
+        dislikeBtn?.classList.remove("active-dislike");
+    {% endif %}
+});
+</script>
+
+{% if logged_in %}
+<p>
+    <a href="{{ url_for('static', filename='videos/' + video.video) }}" download>
+        <button style="padding:5px 10px;">⬇️ Download Video</button>
+    </a>
+</p>
+{% else %}
+<p>Log in to download this video.</p>
+{% endif %}
+
+<hr>
+<h2>Comments</h2>
+<script src="{{ url_for('static', filename='video.js') }}"></script>
+<script>
+    const videoId = "{{ video.id }}";
+    setupVideoVotes(videoId);
+</script>
+{% set comments = video.comments %}
+{% include 'comments_section.html' %}
+{% endblock %}

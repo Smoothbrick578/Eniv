@@ -1,0 +1,16 @@
+<h2>Recover Username</h2>
+
+{% if error %}
+<p style="color:red;">{{ error }}</p>
+{% endif %}
+{% if message %}
+<p style="color:green;">{{ message|safe }}</p>
+{% endif %}
+
+<form method="POST">
+    <label for="hint">Enter your secret hint:</label>
+    <input type="text" name="hint" placeholder="Your hint" required>
+    <button type="submit">Find Username</button>
+</form>
+
+<p><a href="{{ url_for('login') }}">Back to Login</a></p>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Upload Video - Eniv{% endblock %}
+
+{% block content %}
+<h2>Upload a Video</h2>
+
+<form class="styled-form" id="uploadForm" action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+    <label>Title (required)</label><br>
+    <input type="text" name="title" required><br><br>
+
+    <label>Video file (required)</label><br>
+    <input type="file" name="video" accept="video/*" required><br><br>
+
+    <label>Description (optional)</label><br>
+    <textarea name="description" rows="3"></textarea><br><br>
+
+    <label>Thumbnail (optional)</label><br>
+    <input type="file" name="thumbnail" accept="image/*"><br><br>
+
+    <button type="submit">Upload</button>
+</form>
+{% endblock %}

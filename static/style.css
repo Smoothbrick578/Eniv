@@ -1,0 +1,67 @@
+body {
+    font-family: sans-serif;
+    margin: 30px;
+    background-color: #fafafa;
+}
+form.styled-form {
+    padding: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+.hidden {
+    display: none;
+}
+.vote-btn.active-like {
+    background-color: #4caf50; /* green */
+    color: white;
+}
+
+.vote-btn.active-dislike {
+    background-color: #f44336; /* red */
+    color: white;
+}
+.c-like-btn.active-like {
+    background-color: #4caf50;
+    color: white;
+}
+.c-dislike-btn.active-dislike {
+    background-color: #f44336;
+    color: white;
+}
+#sortForm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#sort {
+    padding: 5px 10px;
+    border-radius: 6px;
+}
+.replies-section {
+    margin-top: 8px;
+    margin-left: 15px;
+}
+.toggle-replies-btn {
+    background-color: #eee;
+    border: none;
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.toggle-replies-btn:hover {
+    background-color: #ddd;
+}
+.replies-list {
+    margin-top: 10px;
+    margin-left: 20px;
+    padding-left: 10px;
+    border-left: 2px solid #ccc;
+}
+header img {
+  max-height: 70px;
+  height: auto;
+  width: auto;
+  vertical-align: middle;
+}

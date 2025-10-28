@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Admin - Dashboard{% endblock %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<h2>Users</h2>
+<table>
+  <tr><th>Username</th><th>Shadowbanned</th><th>Followers</th><th>Actions</th></tr>
+  {% for u, data in users.items() %}
+  <tr>
+    <td>{{ u }}</td>
+    <td>{{ data.get('shadowbanned') }}</td>
+    <td>{{ data.get('followers')|length if data.get('followers') else 0 }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('admin_toggle_shadowban', username_to_toggle=u) }}" style="display:inline;">
+        <button type="submit">{{ 'Unshadowban' if data.get('shadowbanned') else 'Shadowban' }}</button>
+      </form>
+      <form method="POST" action="{{ url_for('admin_delete_user', username_to_delete=u) }}" style="display:inline;" onsubmit="return confirm('Delete user and content?');">
+        <button style="background:#a00;color:white;">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2>Videos</h2>
+<table>
+  <tr><th>Title</th><th>Uploader</th><th>Views</th><th>Actions</th></tr>
+  {% for v in videos %}
+  <tr>
+    <td>{{ v.title }}</td>
+    <td>{{ v.uploader }}</td>
+    <td>{{ v.views }}</td>
+    <td>
+      <form method="POST" action="{{ url_for('admin_delete_video', video_id=v.id) }}" style="display:inline;" onsubmit="return confirm('Delete this video?');">
+        <button style="background:#a00;color:white;">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

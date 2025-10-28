@@ -1,0 +1,8 @@
+<h2>Delete Your Account</h2>
+<p>This action is <strong>irreversible</strong>. All your videos, comments, and data will be permanently deleted.</p>
+
+<form method="POST" action="{{ url_for('delete_account') }}">
+    <label>Type <strong>DELETE</strong> to confirm:</label><br>
+    <input type="text" name="confirm_text" required placeholder="Type DELETE here"><br><br>
+    <button type="submit">Delete Account</button>
+</form>

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+    {% block content %}
+<h1>Notifications</h1>
+<ul>
+  {% for n in notifications %}
+    <li style="margin-bottom:10px;">
+      {{ n.emoji }}
+      {% if n.type == "like" %}
+        {{ n.from_user }} liked your video <a href="/video/{{ n.video_id }}">{{ n.video_title }}</a>
+      {% elif n.type == "comment" %}
+        {{ n.from_user }} commented on your video <a href="/video/{{ n.video_id }}">{{ n.video_title }}</a>
+      {% elif n.type == "upload" %}
+        {{ n.from_user }} uploaded a new video <a href="/video/{{ n.video_id }}">{{ n.video_title }}</a>
+      {% endif %}
+      <small>({{ n.timestamp[:19] }})</small>
+    </li>
+  {% else %}
+    <li>No notifications yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

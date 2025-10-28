@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Profiles - Eniv{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Profiles</h2>
+
+<form method="get" style="margin-bottom: 20px; display: flex; gap: 10px;">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search for a user..."
+    value="{{ search_query }}"
+    style="padding: 6px 10px; border-radius: 6px; width: 250px;"
+  />
+  <button type="submit" style="padding: 6px 10px;">Search</button>
+</form>
+
+{% if users %}
+<div class="profile-grid">
+  {% for user in users %}
+  <div class="profile-card">
+    <a href="{{ url_for('user_profile', username=user.username) }}" style="text-decoration: none; color: inherit;">
+      <img
+        src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) if user.profile_pic else url_for('static', filename='default_pfp.png') }}"
+        alt="Profile picture"
+        class="profile-pic"
+      />
+      <div class="profile-info">
+        <h3>@{{ user.username }}</h3>
+        <p>{{ user.bio or 'No bio yet.' }}</p>
+        <p>📹 {{ user.uploads }} videos • 👍 {{ user.likes }} likes</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p>No users found.</p>
+{% endif %}
+
+<style>
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+.profile-card {
+  background: #111;
+  text-align: center;
+  padding: 15px;
+  transition: transform 0.2s ease;
+}
+.profile-card:hover {
+  transform: scale(1.03);
+}
+.profile-info {
+        padding: 10px;
+        color: #eee;
+    }
+.profile-pic {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+</style>
+{% endblock %}

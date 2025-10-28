@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}{{ username }}'s Profile - Eniv{% endblock %}
+
+{% block content %}
+<h2>{{ username }}'s Profile</h2>
+{% if user.profile_pic %}
+  <img src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}" 
+       alt="Profile Picture" 
+       class="profile-pic">
+{% else %}
+  <img src="{{ url_for('static', filename='images/default_profile.jpg') }}" 
+       alt="Default Profile Picture" 
+       class="profile-pic">
+{% endif %}
+<p>{{ user.get('bio', '') }}</p>
+{% if session.get('username') == username %}
+<a href="{{ url_for('edit_profile') }}" class="edit-btn">✏️ Edit Profile</a>
+{% endif %}
+
+{% if logged_in and session_username != username %}
+  <button id="followBtn" data-username="{{ username }}" 
+          class="btn {% if session_username in user.followers %}btn-secondary{% else %}btn-primary{% endif %}">
+    {% if session_username in user.followers %}Unfollow{% else %}Follow{% endif %}
+  </button>
+{% endif %}
+{% if logged_in and session_username == username %}
+    <a href="{{ url_for('delete_account') }}">
+        <button style="background-color:#f44336;color:white;padding:8px 12px;border:none;border-radius:6px;">
+            Delete Account
+        </button>
+    </a>
+{% endif %}
+{% if is_admin(session.get('username')) %}
+<form id="shadowban-form" action="{{ url_for('admin_toggle_shadowban', username_to_toggle=username) }}" method="POST" style="display:inline;">
+    <button type="submit">{{ 'Unshadowban' if user.shadowbanned else 'Shadowban' }}</button>
+</form>
+
+<form action="{{ url_for('admin_delete_user', username_to_delete=username) }}" method="POST" onsubmit="return confirm('Admin: delete this user and all their content?');" style="display:inline;">
+    <button type="submit" style="background:#a00;color:white;">Delete User</button>
+</form>
+{% endif %}
+<p>👥 Followers: <span id="followersCount">{{ user.get("followers", [])|length }}</span></p>
+<p>➡️ Following: {{ user.get("following", [])|length }}</p>
+
+<script>
+    const followBtn = document.getElementById("followBtn");
+    if (followBtn) {
+    followBtn.addEventListener("click", async () => {
+        const username = followBtn.dataset.username;
+        const response = await fetch(`/follow/${username}`, { method: "POST" });
+        const data = await response.json();
+
+        if (data.following) {
+        followBtn.innerText = "Unfollow";
+        followBtn.classList.remove("btn-primary");
+        followBtn.classList.add("btn-secondary");
+        } else {
+        followBtn.innerText = "Follow";
+        followBtn.classList.remove("btn-secondary");
+        followBtn.classList.add("btn-primary");
+        }
+
+        document.getElementById("followersCount").innerText = data.followers_count;
+    });
+    }
+    </script>
+
+{% if not_found %}
+<p>This user hasn’t uploaded any videos yet.</p>
+{% else %}
+<div class="video-grid">
+    {% for video in videos %}
+    <div class="video-card">
+        <a href="{{ url_for('video_page', video_id=video.id) }}">
+            {% if video.thumbnail %}
+                <img src="{{ url_for('static', filename='thumbnails/' + video.thumbnail) }}" alt="Thumbnail for {{ video.title }}">
+            {% else %}
+                <video src="{{ url_for('static', filename='videos/' + video.video) }}" muted loop></video>
+            {% endif %}
+        </a>
+        <div class="video-info">
+            <h3 class="video-title">{{ video.title }}</h3>
+            <p class="video-meta">
+                👁️ {{ video.views or 0 }} views • 🕒 {{ video.uploaded_ago }}
+            </p>
+            <p class="video-likes">
+                👍 {{ video.likes or 0 }} &nbsp;&nbsp; 👎 {{ video.dislikes or 0 }}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+    .video-card {
+        background: #111;
+        overflow: hidden;
+        transition: transform 0.2s ease;
+    }
+    .video-card:hover {
+        transform: scale(1.03);
+    }
+    video, img {
+        width: 100%;
+        aspect-ratio: 1/1; /* keeps it square */
+        object-fit: cover;
+        border-bottom: 1px solid #333;
+        display: block;
+    }
+    .video-info {
+        padding: 10px;
+        color: #eee;
+    }
+    .video-title {
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+    .video-meta, .video-likes {
+        font-size: 0.9rem;
+        color: #aaa;
+    }
+    .profile-pic {
+        width: 100px;              /* Shrink image width */
+        height: 100px;             /* Keep it square */
+        object-fit: cover;         /* Crop and center the image nicely */
+        border-radius: 50%;        /* Make it a perfect circle */
+        border: 2px solid #444;    /* Optional subtle border */
+        display: block;
+    }
+</style>
+
+{% endblock %}

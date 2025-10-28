@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+   {% extends "base.html" %}
+    {% block content %}
+
+    <form id="searchSortForm" method="get" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+        <input
+            type="text"
+            name="q"
+            id="search"
+            placeholder="Search videos..."
+            value="{{ search_query }}"
+            style="padding: 5px 10px; border-radius: 6px; width: 250px;"
+        />
+        <button type="submit" style="padding: 5px 10px;">Search</button>
+
+        <label for="sort">Sort by:</label>
+        <select name="sort" onchange="this.form.submit()">
+            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest</option>
+            <option value="views" {% if current_sort == 'views' %}selected{% endif %}>Most Viewed</option>
+            <option value="likes" {% if current_sort == 'likes' %}selected{% endif %}>Most Liked</option>
+        </select>
+    </form>
+
+    <div class="video-grid">
+        {% for video in videos %}
+        <div class="video-card">
+            <a href="{{ url_for('video_page', video_id=video.id) }}">
+                {% if video.thumbnail %}
+                    <!-- ✅ Show the thumbnail if available -->
+                    <img src="{{ url_for('static', filename='thumbnails/' + video.thumbnail) }}" alt="Thumbnail for {{ video.title }}">
+                {% else %}
+                    <!-- 🔄 Otherwise show the looping 1s video -->
+                    <video src="{{ url_for('static', filename='videos/' + video.video) }}" muted loop></video>
+                {% endif %}
+            </a>
+            <div class="video-info">
+                <h3 class="video-title">{{ video.title }}</h3>
+                <p class="video-meta">
+                    👤 <strong>{{ video.uploader }}</strong> • 
+                    👁️ {{ video.views or 0 }} views • 
+                    🕒 {{ video.uploaded_ago }}
+                </p>
+                <p class="video-likes">
+                    👍 {{ video.likes or 0 }} &nbsp;&nbsp; 👎 {{ video.dislikes or 0 }}
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if videos|length == 0 %}
+    <p>No videos found{% if search_query %} for “{{ search_query }}”{% endif %}.</p>
+    {% endif %}
+
+    <style>
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        padding: 20px;
+    }
+    .video-card {
+        background: #111;
+        overflow: hidden;
+        transition: transform 0.2s ease;
+    }
+    .video-card:hover {
+        transform: scale(1.03);
+    }
+    video, img {
+        width: 100%;
+        aspect-ratio: 1/1; /* keeps it square */
+        object-fit: cover;
+        border-bottom: 1px solid #333;
+        display: block;
+    }
+    .video-info {
+        padding: 10px;
+        color: #eee;
+    }
+    .video-title {
+        font-size: 1rem;
+        margin-bottom: 4px;
+    }
+    .video-meta, .video-likes {
+        font-size: 0.9rem;
+        color: #aaa;
+    }
+    </style>
+
+    {% endblock %}
+</body>
+</html>
