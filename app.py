@@ -4,7 +4,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 from moviepy.editor import VideoFileClip
-from pymongo import MongoClient
 import os, json
 import ffmpeg
 import uuid
@@ -132,23 +131,15 @@ videos = []
 # ------------------------------
 VIDEO_FILE = "videos.json"
 
-# -----------------------------
-# MongoDB setup
-# -----------------------------
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb+srv://battlefalcon9_db_user:4ZPABqP2ILEy3YOL@cluster0.5c9b10v.mongodb.net/")
-client = MongoClient(MONGO_URI)
-db = client["Eniv"]  # default DB from URI
-videos_col = db["Cluster0"]  # collection for videos
-
 def load_videos():
-    """Load all videos from MongoDB."""
-    return list(videos_col.find({}, {'_id': 0}))
+    if not os.path.exists(VIDEO_FILE):
+        return []
+    with open(VIDEO_FILE, "r") as f: 
+        return json.load(f)
 
 def save_videos(videos):
-    """Overwrite all videos in MongoDB."""
-    videos_col.delete_many({})  # remove all current docs
-    if videos:
-        videos_col.insert_many(videos)
+    with open(VIDEO_FILE, "w") as f:
+        json.dump(videos, f, indent=2, ensure_ascii=False)
 
 @app.route("/videos")
 def get_videos():
@@ -1173,7 +1164,7 @@ def inject_helpers():
     }
 
 if __name__ == "__main__":
-    # app.run(debug=True)
+    #app.run(debug=True)
     # Below is for when I am not testing
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
