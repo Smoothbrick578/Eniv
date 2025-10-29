@@ -1173,7 +1173,12 @@ def inject_helpers():
     }
 
 if __name__ == "__main__":
-    app.run(debug=True)
+<<<<<<< HEAD
+    # app.run(debug=True)
     # Below is for when I am not testing
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+=======
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
+>>>>>>> 3b41b74a1f7590acb9e5762108993d870fae381f
